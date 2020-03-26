@@ -1,3 +1,5 @@
+import pickle
+
 from neural_network_library import MSELossLayer, CrossEntropyLossLayer
 
 
@@ -163,3 +165,20 @@ class Preprocessor(object):
         revered_data =\
         data*(self.maximum_values-self.minumim_values) + self.minumim_values
         return revered_data
+
+
+def save_network(network, fpath):
+    """
+    Utility function to pickle `network` at file path `fpath`.
+    """
+    with open(fpath, "wb") as f:
+        pickle.dump(network, f)
+
+
+def load_network(fpath):
+    """
+    Utility function to load network found at file path `fpath`.
+    """
+    with open(fpath, "rb") as f:
+        network = pickle.load(f)
+    return network
