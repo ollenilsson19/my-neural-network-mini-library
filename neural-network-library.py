@@ -269,3 +269,19 @@ class SigmoidLayer(Layer):
         return grad_z*sigmoid_x_prime
 
 
+class ReluLayer(Layer):
+    """
+    ReluLayer: Applies Relu function elementwise.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+
+    def forward(self, x):
+        self._cache_current = x
+        return np.maximum(0, x)
+
+
+    def backward(self, grad_z):
+        return grad_z*(self._cache_current > 0)*1.0
