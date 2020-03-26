@@ -1,4 +1,5 @@
 import pickle
+import numpy as np
 
 from neural_network_library import MSELossLayer, CrossEntropyLossLayer
 
@@ -101,6 +102,7 @@ class Trainer(object):
                 grad_z = self._loss_layer.backward()
                 self.network.backward(grad_z)
                 self.network.update_params(self.learning_rate)
+            print(f"Train loss epoch {epoch} = ", loss)
 
     def eval_loss(self, input_dataset, target_dataset):
         """

@@ -35,7 +35,7 @@ def main():
     trainer = Trainer(
         network=net,
         batch_size=8,
-        nb_epoch=1000,
+        nb_epoch=100,
         learning_rate=0.01,
         loss_fun="cross_entropy",
         shuffle_flag=True,
