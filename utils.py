@@ -114,3 +114,52 @@ class Trainer(object):
         network_output = self.network(input_dataset)
         loss = self._loss_layer.forward(network_output, target_dataset)
         return loss
+
+
+class Preprocessor(object):
+    """
+    Preprocessor: Object used to apply "preprocessing" operation to datasets.
+    The object can also be used to revert the changes.
+    """
+
+    def __init__(self, data):
+        """
+        Initializes the Preprocessor according to the provided dataset.
+        (Does not modify the dataset.)
+
+        Arguments:
+            - data {np.ndarray} dataset used to determined the parameters for
+            the normalization.
+        """
+        self.minumim_values = np.amin(data, axis=0)
+        self.maximum_values = np.amax(data, axis=0)
+
+
+    def apply(self, data):
+        """
+        Apply the pre-processing operations to the provided dataset.
+
+        Arguments:
+            - data {np.ndarray} dataset to be normalized.
+
+        Returns:
+            {np.ndarray} normalized dataset.
+        """
+        normalized_data = \
+        (data - self.minumim_values)/(self.maximum_values-self.minumim_values)
+        return normalized_data
+
+
+    def revert(self, data):
+        """
+        Revert the pre-processing operatibhons to retreive the original dataset.
+
+        Arguments:
+            - data {np.ndarray} dataset for which to revert normalization.
+
+        Returns:
+            {np.ndarray} reverted dataset.
+        """
+        revered_data =\
+        data*(self.maximum_values-self.minumim_values) + self.minumim_values
+        return revered_data
