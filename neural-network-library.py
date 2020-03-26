@@ -140,7 +140,6 @@ class MultiLayerPerceptron(object):
                                         )
 
 
-
     def forward(self, x):#forwardpass trough entire network 
         """
         Performs forward pass through the network.
@@ -157,19 +156,41 @@ class MultiLayerPerceptron(object):
             x = layer.forward(x)
         return(x)
 
+    
+    def __call__(self, x):
+        return self.forward(x)
 
 
+    def backward(self, grad_z): #OK
+        """
+        Performs backward pass through the network.
+
+        Arguments:
+            grad_z {np.ndarray} -- Gradient array of shape (1,
+                #_neurons_in_final_layer).
+
+        Returns:
+            {np.ndarray} -- Array containing gradient with repect to layer
+                input, of shape (batch_size, input_dim).
+        """
+        for layer in self._layers[::-1]:
+            grad_z = layer.backward(grad_z)
+        return grad_z
 
 
+    def update_params(self, learning_rate):#OK
+        """
+        Performs one step of gradient descent with given learning rate on the
+        parameters of all layers using currently stored gradients.
 
-
-
-
-
-
-
-
-
+        Arguments:
+            learning_rate {float} -- Learning rate of update step.
+        """
+        for layer in self._layers:
+            if isinstance(layer, LinearLayer):
+                layer.update_params(learning_rate)
+            else:
+                continue
 
 
 class MSELossLayer(Layer):
@@ -194,3 +215,98 @@ class MSELossLayer(Layer):
 
     def backward(self):
         return self._mse_grad(*self._cache_current)
+
+
+
+class CrossEntropyLossLayer(Layer):
+    """
+    CrossEntropyLossLayer: Computes the softmax followed by the negative log-
+    likelihood loss.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+    @staticmethod
+    def softmax(x):
+        numer = np.exp(x - x.max(axis=1, keepdims=True))
+        denom = numer.sum(axis=1, keepdims=True)
+        return numer / denom
+
+    def forward(self, inputs, y_target):
+        assert len(inputs) == len(y_target)
+        n_obs = len(y_target)
+        probs = self.softmax(inputs)
+        self._cache_current = y_target, probs
+
+        out = -1 / n_obs * np.sum(y_target * np.log(probs))
+        return out
+
+    def backward(self):
+        y_target, probs = self._cache_current
+        n_obs = len(y_target)
+        return -1 / n_obs * (y_target - probs)
+
+
+
+class SigmoidLayer(Layer):
+    """
+    SigmoidLayer: Applies sigmoid function elementwise.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+
+    def forward(self, x):
+        sigmoid_x = 1/(1 + np.exp(-x))
+        self._cache_current = sigmoid_x
+        return sigmoid_x
+
+
+    def backward(self, grad_z):
+        sigmoid_x_prime = self._cache_current*(1 - self._cache_current)
+        return grad_z*sigmoid_x_prime
+
+
+class ReluLayer(Layer):
+    """
+    ReluLayer: Applies Relu function elementwise.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+
+    def forward(self, x):
+        self._cache_current = x
+        return np.maximum(0, x)
+
+
+    def backward(self, grad_z):
+        return grad_z*(self._cache_current > 0)*1.0
+
+
+
+class LeakyReluLayer(Layer, alpha=0.02):
+    """
+    LeakyReluLayer: Applies LeakyRelu function elementwise.
+    
+    Arguments:
+            alpha {float} -- slope of activation when x < 0 (x >= 0 slope = 1).
+    """
+
+    def __init__(self):
+        self.alpha = alpha
+        self._cache_current = None
+
+
+    def forward(self, x):
+        self._cache_current = x
+        return np.maximum(self.alpha*x, x)
+
+
+    def backward(self, grad_z):
+        grad_x = np.ones_like(self._cache_current)
+        grad_x[self._cache_current < 0] = self.alpha
+        return grad_z*grad_x
