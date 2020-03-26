@@ -140,7 +140,6 @@ class MultiLayerPerceptron(object):
                                         )
 
 
-
     def forward(self, x):#forwardpass trough entire network 
         """
         Performs forward pass through the network.
@@ -157,20 +156,42 @@ class MultiLayerPerceptron(object):
             x = layer.forward(x)
         return(x)
 
+    
+    def __call__(self, x):
+        return self.forward(x)
 
 
+    def backward(self, grad_z): #OK
+        """
+        Performs backward pass through the network.
+
+        Arguments:
+            grad_z {np.ndarray} -- Gradient array of shape (1,
+                #_neurons_in_final_layer).
+
+        Returns:
+            {np.ndarray} -- Array containing gradient with repect to layer
+                input, of shape (batch_size, input_dim).
+        """
+        for layer in self._layers[::-1]:
+            grad_z = layer.backward(grad_z)
+        return grad_z
 
 
+    def update_params(self, learning_rate):#OK
+        """
+        Performs one step of gradient descent with given learning rate on the
+        parameters of all layers using currently stored gradients.
 
-
-
-
-
-
-
-
-
-
+        Arguments:
+            learning_rate {float} -- Learning rate of update step.
+        """
+        for layer in self._layers:
+            if isinstance(layer, LinearLayer):
+                layer.update_params(learning_rate)
+            else:
+                continue
+            
 
 class MSELossLayer(Layer):
     """
@@ -194,3 +215,35 @@ class MSELossLayer(Layer):
 
     def backward(self):
         return self._mse_grad(*self._cache_current)
+
+
+
+class CrossEntropyLossLayer(Layer):
+    """
+    CrossEntropyLossLayer: Computes the softmax followed by the negative log-
+    likelihood loss.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+    @staticmethod
+    def softmax(x):
+        numer = np.exp(x - x.max(axis=1, keepdims=True))
+        denom = numer.sum(axis=1, keepdims=True)
+        return numer / denom
+
+    def forward(self, inputs, y_target):
+        assert len(inputs) == len(y_target)
+        n_obs = len(y_target)
+        probs = self.softmax(inputs)
+        self._cache_current = y_target, probs
+
+        out = -1 / n_obs * np.sum(y_target * np.log(probs))
+        return out
+
+    def backward(self):
+        y_target, probs = self._cache_current
+        n_obs = len(y_target)
+        return -1 / n_obs * (y_target - probs)
+
