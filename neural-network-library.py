@@ -191,7 +191,7 @@ class MultiLayerPerceptron(object):
                 layer.update_params(learning_rate)
             else:
                 continue
-            
+
 
 class MSELossLayer(Layer):
     """
@@ -246,4 +246,26 @@ class CrossEntropyLossLayer(Layer):
         y_target, probs = self._cache_current
         n_obs = len(y_target)
         return -1 / n_obs * (y_target - probs)
+
+
+
+class SigmoidLayer(Layer):
+    """
+    SigmoidLayer: Applies sigmoid function elementwise.
+    """
+
+    def __init__(self):
+        self._cache_current = None
+
+
+    def forward(self, x):
+        sigmoid_x = 1/(1 + np.exp(-x))
+        self._cache_current = sigmoid_x
+        return sigmoid_x
+
+
+    def backward(self, grad_z):
+        sigmoid_x_prime = self._cache_current*(1 - self._cache_current)
+        return grad_z*sigmoid_x_prime
+
 
