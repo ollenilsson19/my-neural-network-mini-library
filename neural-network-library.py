@@ -285,3 +285,28 @@ class ReluLayer(Layer):
 
     def backward(self, grad_z):
         return grad_z*(self._cache_current > 0)*1.0
+
+
+
+class LeakyReluLayer(Layer, alpha=0.02):
+    """
+    LeakyReluLayer: Applies LeakyRelu function elementwise.
+    
+    Arguments:
+            alpha {float} -- slope of activation when x < 0 (x >= 0 slope = 1).
+    """
+
+    def __init__(self):
+        self.alpha = alpha
+        self._cache_current = None
+
+
+    def forward(self, x):
+        self._cache_current = x
+        return np.maximum(self.alpha*x, x)
+
+
+    def backward(self, grad_z):
+        grad_x = np.ones_like(self._cache_current)
+        grad_x[self._cache_current < 0] = self.alpha
+        return grad_z*grad_x
