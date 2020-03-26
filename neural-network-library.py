@@ -109,6 +109,56 @@ class LinearLayer(Layer):
 
 
 
+class MultiLayerPerceptron(object):
+    """
+    MultiLayerPerceptron: A network consisting of stacked linear layers and
+    activation functions.
+    """
+
+    def __init__(self, input_dim, neurons, activations):
+        """
+        Arguments:
+            input_dim {int} -- Dimension of input (excluding batch dimension).
+            neurons {list} -- Number of neurons in each layer represented as a
+                list (the length of the list determines the number of layers).
+            activations {list} -- List of the activation function to use for
+                each layer.
+        """
+        self.input_dim = input_dim
+        self.neurons = neurons
+        self.activations = activations
+
+        self._layers = []
+        layer_specs = [self.input_dim] + self.neurons
+        for layer in range(len(self.neurons)):
+            self._layers.append(LinearLayer(layer_specs[layer], layer_specs[layer+1]))
+            if self.activations[layer] == 'identity':
+                continue
+            else:
+                raise NotImplementedError(f"Activation function {self.activations[layer]}",
+                                          f" has not been implemented yet"
+                                        )
+
+
+
+    def forward(self, x):#forwardpass trough entire network 
+        """
+        Performs forward pass through the network.
+
+        Arguments:
+            x {np.ndarray} -- Input array of shape (batch_size, input_dim).
+
+        Returns:
+            {np.ndarray} -- Output array of shape (batch_size,
+                #_neurons_in_final_layer)
+        """
+
+        for layer in self._layers:
+            x = layer.forward(x)
+        return(x)
+
+
+
 
 
 
