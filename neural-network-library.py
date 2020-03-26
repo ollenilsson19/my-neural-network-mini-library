@@ -95,6 +95,19 @@ class LinearLayer(Layer):
         return grad_z@self._W.T
 
 
+    def update_params(self, learning_rate):
+        """
+        Performs one step of gradient descent with given learning rate on the
+        layer's parameters using currently stored gradients.
+
+        Arguments:
+            learning_rate {float} -- Learning rate of update step.
+        """
+        self._W += -learning_rate*self._grad_W_current
+        self._b += -learning_rate*self._grad_b_current
+
+
+
 
 
 
