@@ -115,7 +115,7 @@ class MultiLayerPerceptron(object):
     activation functions.
     """
 
-    def __init__(self, input_dim, neurons, activations):
+    def __init__(self, input_dim, neurons, activations, alpha=0.02):
         """
         Arguments:
             input_dim {int} -- Dimension of input (excluding batch dimension).
@@ -134,6 +134,16 @@ class MultiLayerPerceptron(object):
             self._layers.append(LinearLayer(layer_specs[layer], layer_specs[layer+1]))
             if self.activations[layer] == 'identity':
                 continue
+            
+            elif self.activations[layer] == 'relu':
+                self._layers.append(ReluLayer())
+
+            elif self.activations[layer] == 'leakyrelu':
+                self._layers.append(LeakyReluLayer(0.02))
+
+            elif self.activations[layer] == 'sigmoid':
+                self._layers.append(SigmoidLayer())
+
             else:
                 raise NotImplementedError(f"Activation function {self.activations[layer]}",
                                           f" has not been implemented yet"
